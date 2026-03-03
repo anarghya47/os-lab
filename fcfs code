@@ -1,0 +1,69 @@
+#include <stdio.h>
+
+int main() {
+    int n, i, j;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    int at[n], bt[n], ct[n], tat[n], wt[n], rt[n], p[n], temp;
+
+    // Input
+    for(i = 0; i < n; i++) {
+        printf("\nProcess P%d\n", i + 1);
+        printf("Arrival Time: ");
+        scanf("%d", &at[i]);
+        printf("Burst Time: ");
+        scanf("%d", &bt[i]);
+        p[i] = i + 1;
+    }
+
+    // Sort by Arrival Time (FCFS order)
+    for(i = 0; i < n - 1; i++) {
+        for(j = i + 1; j < n; j++) {
+            if(at[i] > at[j]) {
+                temp = at[i]; at[i] = at[j]; at[j] = temp;
+                temp = bt[i]; bt[i] = bt[j]; bt[j] = temp;
+                temp = p[i];  p[i]  = p[j];  p[j]  = temp;
+            }
+        }
+    }
+
+    int current_time = 0;
+
+    for(i = 0; i < n; i++) {
+
+        if(current_time < at[i]) {
+            current_time = at[i];   // CPU Idle
+        }
+
+        rt[i] = current_time - at[i];  // Response Time
+        wt[i] = rt[i];                 // In FCFS, WT = RT
+
+        current_time += bt[i];
+
+        ct[i] = current_time;          // Completion Time
+        tat[i] = ct[i] - at[i];        // Turnaround Time
+    }
+
+    // Display
+    printf("\nProcess\tAT\tBT\tCT\tTAT\tWT\tRT\n");
+    for(i = 0; i < n; i++) {
+        printf("P%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
+               p[i], at[i], bt[i], ct[i], tat[i], wt[i], rt[i]);
+    }
+
+    float total_wt = 0, total_tat = 0, total_rt = 0;
+
+    for(i = 0; i < n; i++) {
+        total_wt += wt[i];
+        total_tat += tat[i];
+        total_rt += rt[i];
+    }
+
+    printf("\nAverage Waiting Time = %.2f", total_wt / n);
+    printf("\nAverage Turnaround Time = %.2f", total_tat / n);
+    printf("\nAverage Response Time = %.2f\n", total_rt / n);
+
+    return 0;
+}
