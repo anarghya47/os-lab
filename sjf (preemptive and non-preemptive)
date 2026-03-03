@@ -1,0 +1,148 @@
+#include <stdio.h>
+
+int main() {
+    int n, i, choice;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    int pid[n], at[n], bt[n], rt[n];
+    int ct[n], wt[n], tat[n], resp[n], completed[n];
+
+    // Input
+    for(i = 0; i < n; i++) {
+        pid[i] = i + 1;
+
+        printf("\nProcess P%d\n", pid[i]);
+        printf("Arrival Time: ");
+        scanf("%d", &at[i]);
+
+        printf("Burst Time: ");
+        scanf("%d", &bt[i]);
+
+        rt[i] = bt[i];          // Remaining time
+        completed[i] = 0;
+        resp[i] = -1;           // Not started yet
+    }
+
+    printf("\nSelect Scheduling Type:\n");
+    printf("1. Non-Preemptive SJF\n");
+    printf("2. Preemptive SJF (SRTF)\n");
+    printf("Enter choice: ");
+    scanf("%d", &choice);
+
+    int current_time = 0;
+    int complete = 0;
+
+    // ================= NON PREEMPTIVE SJF =================
+    if(choice == 1) {
+
+        while(complete < n) {
+            int shortest = -1;
+            int min_bt = 1000000;
+
+            for(i = 0; i < n; i++) {
+                if(at[i] <= current_time && completed[i] == 0) {
+
+                    if(bt[i] < min_bt) {
+                        min_bt = bt[i];
+                        shortest = i;
+                    }
+                    // Tie breaker → earlier arrival
+                    else if(bt[i] == min_bt) {
+                        if(at[i] < at[shortest])
+                            shortest = i;
+                    }
+                }
+            }
+
+            if(shortest == -1) {
+                current_time++;   // CPU idle
+            }
+            else {
+
+                if(resp[shortest] == -1)
+                    resp[shortest] = current_time - at[shortest];
+
+                current_time += bt[shortest];
+
+                ct[shortest] = current_time;
+                tat[shortest] = ct[shortest] - at[shortest];
+                wt[shortest] = tat[shortest] - bt[shortest];
+
+                completed[shortest] = 1;
+                complete++;
+            }
+        }
+    }
+
+    // ================= PREEMPTIVE SJF (SRTF) =================
+    else if(choice == 2) {
+
+        while(complete < n) {
+            int shortest = -1;
+            int min_rt = 1000000;
+
+            for(i = 0; i < n; i++) {
+                if(at[i] <= current_time && completed[i] == 0) {
+
+                    if(rt[i] < min_rt) {
+                        min_rt = rt[i];
+                        shortest = i;
+                    }
+                    // Tie breaker → earlier arrival
+                    else if(rt[i] == min_rt) {
+                        if(at[i] < at[shortest])
+                            shortest = i;
+                    }
+                }
+            }
+
+            if(shortest == -1) {
+                current_time++;   // CPU idle
+            }
+            else {
+
+                if(resp[shortest] == -1)
+                    resp[shortest] = current_time - at[shortest];
+
+                rt[shortest]--;
+                current_time++;
+
+                if(rt[shortest] == 0) {
+                    completed[shortest] = 1;
+                    complete++;
+
+                    ct[shortest] = current_time;
+                    tat[shortest] = ct[shortest] - at[shortest];
+                    wt[shortest] = tat[shortest] - bt[shortest];
+                }
+            }
+        }
+    }
+
+    else {
+        printf("Invalid choice!\n");
+        return 0;
+    }
+
+    // ================= DISPLAY =================
+    float total_wt = 0, total_tat = 0, total_rt = 0;
+
+    printf("\nProcess\tAT\tBT\tCT\tTAT\tWT\tRT\n");
+
+    for(i = 0; i < n; i++) {
+        printf("P%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
+               pid[i], at[i], bt[i], ct[i], tat[i], wt[i], resp[i]);
+
+        total_wt += wt[i];
+        total_tat += tat[i];
+        total_rt += resp[i];
+    }
+
+    printf("\nAverage Waiting Time = %.2f", total_wt/n);
+    printf("\nAverage Turnaround Time = %.2f", total_tat/n);
+    printf("\nAverage Response Time = %.2f\n", total_rt/n);
+
+    return 0;
+}
